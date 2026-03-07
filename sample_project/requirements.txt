@@ -1,0 +1,4 @@
+
+flask==1.0
+urllib3==1.25
+django==2.2
