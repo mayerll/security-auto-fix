@@ -77,3 +77,63 @@ Clone the repository:
 git clone https://github.com/mayerll/security-auto-fix.git
 cd security-auto-fix
 pip install pip-audit pytest
+
+
+# Usage
+Scan for vulnerabilities
+```bash
+python3 cli.py scan ./sample_project
+## JSON output
+```bash
+python3 cli.py scan ./sample_project --json
+## Automatically fix vulnerable dependencies
+```bash
+python3 cli.py fix ./sample_project
+## Dry-run mode
+```bash
+python3 cli.py fix ./sample_project --dry-run
+## Rollback to previous state
+```bash
+python3 cli.py fix ./sample_project --rollback
+# Docker Support
+
+## Build and run container:
+```bash
+docker build -t security-auto-fix .
+docker run --rm -v $(pwd)/sample_project:/app/sample_project security-auto-fix scan ./sample_project
+# Test Coverage
+
+Run basic tests:
+```bash
+pytest tests/
+# CI/CD Example
+
+GitHub Actions workflow automatically:
+
+Scans dependencies on push or PR
+
+Produces JSON security report
+
+Runs tests
+
+Optionally can fail build or open PR with fixes
+
+# Limitations
+
+Only Python dependencies (requirements.txt) supported
+
+Selects first available fixed version
+
+Dependency compatibility not validated
+
+# Future Improvements
+
+Support Poetry / Pipenv / npm / yarn
+
+Secret scanning
+
+Container / Dockerfile scanning
+
+Rollback with version history
+
+Web dashboard for vulnerability visualization
