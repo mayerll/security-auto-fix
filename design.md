@@ -1,156 +1,117 @@
 
 
+---
+
+
+```markdown
 # Security Automation Tool – Design Notes
 
 ## Overview
 
-This project implements a lightweight security automation tool for Python dependencies.
+This project is a lightweight security automation tool for Python dependencies.  
+It scans dependencies, reports vulnerabilities, and optionally applies safe remediation.
 
-It addresses the common security risk of **vulnerable open-source dependencies**. The tool scans dependencies, reports vulnerabilities, and optionally applies safe remediation.
+It addresses the common security risk of **vulnerable open-source dependencies**.
 
 ---
 
 # Design Goals
 
-1. **Security Automation** – automate detection and remediation
-2. **Dry-run Support** – preview changes safely
-3. **JSON Output** – structured output for CI/CD
-4. **Simplicity** – lightweight implementation
-5. **Developer-Friendly Interface** – CLI
-6. **Modular Architecture** – scanner / reporter / fixer
+- Security automation
+- Dry-run support
+- JSON structured output
+- Rollback support
+- Basic test coverage
+- Docker support
+- CI/CD integration
+- Modular architecture (scanner / reporter / fixer)
+- Developer-friendly CLI
 
 ---
 
 # System Architecture
 
-```text
-+--------------------+
-|   Scanner Module    |
-|   (pip-audit)       |
-+---------+----------+
++-------------------+
+| Scanner Module    |
+| (pip-audit)       |
++---------+---------+
           |
           v
-+--------------------+
-|   Reporter Module   |
-|  (CLI & JSON)       |
-+---------+----------+
++-------------------+
+| Reporter Module   |
+| (CLI & JSON)      |
++---------+---------+
           |
           v
-+--------------------+
-|    Fixer Module     |
-|  (auto-update deps) |
-|  Dry-run optional   |
-+--------------------+
-```
++-------------------+
+| Fixer Module      |
+| - auto-update deps|
+| - dry-run optional|
+| - rollback option |
++-------------------+
 
 ---
 
-# Data Flow Diagram
+# Data Flow
 
-```text
 requirements.txt
         │
         v
-  [Dependency Scanner]
+[Dependency Scanner]
         │
         v
-   JSON Scan Results
+ JSON Scan Results
         │
         v
-   [Report Generator]
+[Report Generator]
         │
         v
- [Automated Remediation]
+[Automated Remediation]
         │
         v
- Updated requirements.txt
-```
+Updated requirements.txt
 
 ---
 
 # Threat Model
 
-Vulnerable dependencies can lead to:
+Addresses vulnerable dependencies:
 
-* Remote code execution
-* Arbitrary file read/write
-* Insecure deserialization
-* Denial-of-service attacks
-
-The tool reduces attack surface by detecting and remediating vulnerabilities early in the development lifecycle.
+- Remote code execution
+- Arbitrary file access
+- Insecure deserialization
+- Denial-of-service attacks
 
 ---
 
 # Security Detection Approach
 
-* Uses **pip-audit** and OSV database
-* Detects known vulnerabilities
-* Outputs structured JSON for automation
+- Uses pip-audit + OSV database
+- Detects known vulnerabilities
+- Outputs structured JSON for automation / CI
 
 ---
 
 # Remediation Strategy
 
-1. Identify vulnerable dependencies
-2. Pick first safe version
-3. Update `requirements.txt`
-4. Dry-run mode available for safe preview
+- Identify vulnerable dependencies
+- Pick first safe version
+- Update requirements.txt
+- Dry-run available for safe preview
+- Rollback option to restore backup
 
 ---
 
 # Engineering Trade-Offs
 
-* **External scanner (pip-audit)**: accurate, reduces complexity
-* **Simple upgrade logic**: fast, easy, no dependency compatibility validation
-* **CLI interface**: easy CI integration, no web UI
+- External scanner → reliable, reduces complexity
+- Simple upgrade logic → fast, easy, but no compatibility checks
+- CLI interface → CI/CD friendly, no web UI
 
 ---
 
 # CI/CD Integration
 
-* GitHub Actions workflow included
-* Automatically scans dependencies on push / PR
-* Generates JSON security report
-* Can be extended to fail build or open PR with fixes
-
-```text
-Push / PR
-   │
-   v
-[Checkout & Setup Python]
-   │
-   v
-[Install pip-audit]
-   │
-   v
-[Run scan → JSON report]
-   │
-   v
-[Upload artifact / integrate with CI rules]
-```
-
----
-
-# Extensibility
-
-Future enhancements:
-
-* Secret scanning
-* Container / Dockerfile scanning
-* Multi-language dependency scanning (npm, yarn)
-* Rollback support
-* Web dashboard
-
----
-
-# Conclusion
-
-This project demonstrates a **realistic security automation workflow**:
-
-* Dependency vulnerability detection
-* Structured reporting (CLI & JSON)
-* Automated remediation with dry-run
-* CI/CD integration
-
-It reflects **modern DevSecOps practices** and can be extended to a production-ready security automation tool.
-
+- GitHub Actions workflow included
+- Automatically scans dependencies and runs tests
+- JSON report upload for further automation
