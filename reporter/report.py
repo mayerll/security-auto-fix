@@ -1,18 +1,21 @@
 
-import json
-
-def print_report(results):
+def print_report(report):
     print("\nSECURITY REPORT")
-    print("================\n")
-    for dep in results.get("dependencies", []):
-        vulns = dep.get("vulns", [])
-        if vulns:
-            for v in vulns:
-                print(f"Package: {dep['name']}")
-                print(f"Installed Version: {dep['version']}")
-                print(f"Vulnerability ID: {v['id']}")
-                print(f"Fix Versions: {', '.join(v['fix_versions'])}")
-                print("-" * 40)
+    print("=" * 20)
 
-def print_json_report(results):
-    print(json.dumps(results, indent=2))
+    if not report.get("dependencies"):
+        print("No vulnerabilities found or scan failed.")
+        return
+
+    for dep in report["dependencies"]:
+        print(f"- {dep['name']}=={dep['version']}")
+        for vuln in dep.get("vulns", []):
+            print(f"  * {vuln.get('id')}: {vuln.get('description')}")
+            if vuln.get("fix_versions"):
+                fixes = ", ".join(vuln["fix_versions"])
+                print(f"    → Fix available in: {fixes}")
+
+    if report.get("fixes"):
+        print("\nApplied Fixes:")
+        for fix in report["fixes"]:
+            print(f"- {fix}")

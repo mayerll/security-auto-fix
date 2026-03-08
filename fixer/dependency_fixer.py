@@ -1,44 +1,28 @@
 
-import os
-import shutil
+import subprocess
+import sys
 
-def fix_dependencies(scan_results, path, dry_run=False):
-    requirements_file = f"{path}/requirements.txt"
-    backup_file = f"{path}/requirements.txt.bak"
+def apply_fixes(report, target_path):
+    """
+    Apply fixes for vulnerable packages found in the report.
+    Returns updated report with 'fixes' applied.
+    """
+    if not report.get("dependencies"):
+        return report
 
-    if not dry_run:
-        shutil.copy(requirements_file, backup_file)
-        print(f"Backup created at {backup_file}")
+    fixes_applied = []
 
-    with open(requirements_file, "r") as f:
-        lines = f.readlines()
+    for dep in report["dependencies"]:
+        for vuln in dep.get("vulns", []):
+            if vuln.get("fix_versions"):
+                latest_fix = vuln["fix_versions"][-1]
+                try:
+                    cmd = [sys.executable, "-m", "pip", "install", f"{dep['name']}=={latest_fix}"]
+                    subprocess.run(cmd, check=True)
+                    fixes_applied.append(f"{dep['name']} -> {latest_fix}")
+                except subprocess.CalledProcessError as e:
+                    print(f"Failed to upgrade {dep['name']} to {latest_fix}: {e}")
 
-    updated_lines = lines.copy()
-    changes = []
+    report["fixes"] = fixes_applied
+    return report
 
-    for dep in scan_results.get("dependencies", []):
-        vulns = dep.get("vulns", [])
-        if vulns:
-            pkg = dep["name"]
-            fixed_version = vulns[0]["fix_versions"][0] if vulns[0]["fix_versions"] else None
-            if fixed_version:
-                for i, line in enumerate(updated_lines):
-                    if line.startswith(f"{pkg}==") or line.startswith(f"{pkg}>="):
-                        updated_lines[i] = f"{pkg}=={fixed_version}\n"
-                        changes.append(f"{pkg}: {line.strip()} -> {pkg}=={fixed_version}")
-
-    if dry_run:
-        if changes:
-            print("Dry-run mode: The following changes would be applied:")
-            for change in changes:
-                print(change)
-        else:
-            print("No changes would be applied.")
-    else:
-        with open(requirements_file, "w") as f:
-            f.writelines(updated_lines)
-        for change in changes:
-            print(f"Applied fix: {change}")
-
-    if not changes:
-        print("No vulnerable dependencies found or nothing to fix.")
