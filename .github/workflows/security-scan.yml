@@ -10,15 +10,17 @@ on:
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+
     steps:
       # 1. Checkout the repository
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       # 2. Set up Python
-      - name: Set up Python 3.15
+      - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: 3.15
+          python-version: 3.12
 
       # 3. Install dependencies
       - name: Install dependencies
@@ -34,7 +36,7 @@ jobs:
       # 5. Run unit tests
       - name: Run tests
         run: |
-          pytest tests/ || true
+          pytest tests/ --junitxml=tests/reports/test_results.xml || true
 
       # 6. Upload security report as artifact
       - name: Upload security report
@@ -43,9 +45,10 @@ jobs:
           name: security-report
           path: security_report.json
 
-      # 7. Optional: Upload test results
+      # 7. Upload test results as artifact
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: tests/reports/ || true
+          path: tests/reports/test_results.xml
+
