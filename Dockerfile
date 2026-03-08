@@ -1,10 +1,13 @@
 
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY . /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir pip-audit
 
-RUN pip install --upgrade pip && pip install pip-audit pytest
+COPY scanner/ scanner/
+COPY reporter/ reporter/
+COPY cli.py .
 
-CMD ["python3", "cli.py"]
+CMD ["python3", "cli.py", "scan", "."]
