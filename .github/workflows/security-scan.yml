@@ -28,27 +28,34 @@ jobs:
           python -m pip install --upgrade pip
           pip install pip-audit pytest
 
-      # 4. Run security scan (dry-run)
+      # 4. Install your project (so tests can import modules)
+      - name: Install project in editable mode
+        run: pip install -e .
+
+      # 5. Run security scan (dry-run)
       - name: Run security scan (dry-run)
         run: |
           python3 cli.py scan ./sample_project --json --dry-run > security_report.json || true
 
-      # 5. Run unit tests
+      # 6. Run unit tests and generate JUnit XML report
       - name: Run tests
         run: |
           pytest tests/ --junitxml=tests/reports/test_results.xml || true
 
-      # 6. Upload security report as artifact
+      # 7. Upload security report as artifact
       - name: Upload security report
         uses: actions/upload-artifact@v4
         with:
           name: security-report
           path: security_report.json
 
-      # 7. Upload test results as artifact
+      # 8. Upload test results as artifact
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: tests/reports/test_results.xml
+
+
+
 
